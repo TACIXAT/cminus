@@ -6,6 +6,12 @@ This project will initially implement the TINY language, also defined in Compile
 
 This is my first project in OCaml. I'm using the [Cornell's CS3110 parsing code](http://www.cs.cornell.edu/courses/cs3110/2015fa/l/12-interp/rec.html) as my basis. This was the cleanest code I found that defined a language and produced an AST. The comments are very thorough (though I will delete most of them as time goes on). 
 
+## Building
+
+`ocamlbuild -use-menhir main.byte`
+
+Then use `utop` to access the `parse` function.
+
 ## Installing OCaml on CentOS 6
 
 TBD (for professor)
