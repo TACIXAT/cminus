@@ -12,9 +12,24 @@ I'm using the [Cornell's CS3110 parsing code](http://www.cs.cornell.edu/courses/
 
 A good resource for code is the [LLVM Kaleidoscope OCaml tutorial](http://llvm.org/docs/tutorial/OCamlLangImpl1.html). It uses camlp4 and the code is more complex than the Cornell tutorial. It includes examples of code generation and other further pieces of a compiler.
 
+## Dependencies
+
+Install ocaml.
+
+Build LLVM from source, it should detect ocaml and install bindings when you `sudo make install`. On OS Sierra you can check for `/usr/local/lib/ocaml/llvm*`.
+
+Alternatively, you can try to install LLVM with your package manager, then install the bindings with `opam install llvm`.
+
+If you want these in utop you have to build a custom one. You can build an `llvmutop` with step 3 [here](https://xysun.github.io/posts/install-llvm-ocaml-bindings-and-toplevel.html), credit @xysun.
+
+```
+echo "let () = UTop_main.main ()" > myutop_main.ml
+ocamlfind ocamlmktop -o llvmutop -thread -linkpkg -package utop llvm.cma myutop_main.ml -cc g++
+```
+
 ## Building
 
-`ocamlbuild -use-menhir main.byte`
+`ocamlbuild -lib=llvm main.byte`
 
 Then use `utop` to access the `parse` function.
 

@@ -1,5 +1,5 @@
 open Ast
-
+open Llvm
 (*
 (* [subst e1 e2 x] is [e1] with [e2] substituted for [x]. *)
 let rec subst e1 e2 x = match e1 with
@@ -36,6 +36,38 @@ let parse s =
   let lexbuf = Lexing.from_string s in
   let ast = Parser.prog Lexer.read lexbuf in
   ast
+
+let ccatl l = String.concat "" l
+
+let rec to_string = function
+  | Var s -> ccatl ["( Var "; s; " )"]
+  | Int i -> ccatl ["( Int "; (string_of_int i); " )"]
+  | Assign (e1, e2) -> ccatl ((to_string e1) :: " := " :: (to_string e2) :: ["\n"])
+  | Equiv (e1, e2) -> ccatl ((to_string e1) :: " = " :: (to_string e2) :: [])
+  | Less (e1, e2) -> ccatl ((to_string e1) :: " < " :: (to_string e2) :: [])
+  | Add (e1, e2) -> ccatl ((to_string e1) :: " + " :: (to_string e2) :: [])
+  | Sub (e1, e2) -> ccatl ((to_string e1) :: " - " :: (to_string e2) :: [])
+  | Mul (e1, e2) -> ccatl ((to_string e1) :: " * " :: (to_string e2) :: [])
+  | Div (e1, e2) -> ccatl ((to_string e1) :: " / " :: (to_string e2) :: [])
+  | Ift (e, el) -> ccatl 
+    ("If ( " :: (to_string e) :: " )\n(\n" :: (List.map to_string el) @ [")\n"])
+  | Ife (e, e1, e2) -> ccatl 
+    (("If ( " :: (to_string e) :: " )\n(\n" :: (List.map to_string e1)) 
+    @ ("\n) else (\n" :: (List.map to_string e2) @ [")\n"]))
+  | Repeat (el, e) -> ccatl ("Repeat (\n" :: 
+    (List.map to_string el) @ [") until ("; (to_string e); " )\n"])
+  | Read v -> ccatl ("( Read" :: (to_string v) :: [" )\n"])
+  | Write e -> ccatl ("( Write" :: (to_string e) :: [" )\n"])
+
+let file = "sample.tny" 
+let contents = Core.Std.In_channel.read_all file
+let parsed = parse contents
+let str_list = List.map to_string parsed;;
+
+print_string (String.concat "" (str_list));;
+
+(* let ast = parse "2 + 2;" ;; *)
+(* let gctx = Llvm.global_context () ;; *)
 
 (* Extract a value from an ast node.
    Raises Failure if the argument is a node containing a value. *)
