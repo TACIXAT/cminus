@@ -1,5 +1,4 @@
 open Ast
-open Llvm
 (*
 (* [subst e1 e2 x] is [e1] with [e2] substituted for [x]. *)
 let rec subst e1 e2 x = match e1 with

@@ -29,9 +29,7 @@ ocamlfind ocamlmktop -o llvmutop -thread -linkpkg -package utop llvm.cma myutop_
 
 ## Building
 
-`ocamlbuild -lib=llvm main.byte`
-
-Then use `utop` to access the `parse` function.
+`ocamlbuild -lib=llvm -use-ocamlfind -pkg core -tag thread  main.byte`
 
 ## Installing OCaml on CentOS 6
 
