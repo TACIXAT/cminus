@@ -8,7 +8,14 @@ let llvm_mod = create_module llvm_ctx "tiny";;
 let llvm_builder = builder llvm_ctx
 let named_values:(string, llvalue) Hashtbl.t = Hashtbl.create 10
 let i32_t = i32_type llvm_ctx
+let void_t = void_type llvm_ctx
+
 let fn_t = function_type i32_t [| |]
+let wrt_t = function_type void_t [| i32_t |]
+
+let read = declare_function "read" fn_t llvm_mod
+let write = declare_function "write" wrt_t llvm_mod
+
 let main = define_function "main" fn_t llvm_mod
 let entry = entry_block main;;
 position_at_end entry llvm_builder
@@ -38,8 +45,14 @@ let rec codegen_expr = function
 		in
 		ignore(build_store _val variable llvm_builder);
 		_val
- 	(* | Equiv (e1, e2) -> 
- 	| Less (e1, e2) ->  *)
+ 	| Ast.Equiv (e1, e2) -> 
+ 		let lhs = codegen_expr e1 in
+ 		let rhs = codegen_expr e2 in
+ 		build_icmp Llvm.Icmp.Eq lhs rhs "eqtmp" llvm_builder
+ 	| Ast.Less (e1, e2) -> 
+ 		let lhs = codegen_expr e1 in
+ 		let rhs = codegen_expr e2 in
+ 		build_icmp Llvm.Icmp.Slt lhs rhs "slttmp" llvm_builder
  	| Ast.Add (e1, e2) -> 
  		let lhs = codegen_expr e1 in
  		let rhs = codegen_expr e2 in
@@ -52,14 +65,42 @@ let rec codegen_expr = function
  		let lhs = codegen_expr e1 in
  		let rhs = codegen_expr e2 in
  		build_mul lhs rhs "multmp" llvm_builder
- 	(* | Div (e1, e2) -> 
- 	| Ift (e, el) -> 
- 	| Ife (e, e1, e2) -> 
- 	| Repeat (el, e) -> 
- 	| Read v -> 
- 	| Write e ->  *)
+ 	| Ast.Div (e1, e2) -> 
+ 		let lhs = codegen_expr e1 in
+ 		let rhs = codegen_expr e2 in
+ 		build_sdiv lhs rhs "divtmp" llvm_builder
+ 	| Ast.Ift (e, el) -> 
+ 		let cond = codegen_expr e in
+ 		let if_blk = append_block llvm_ctx "if.true" main in
+ 		let end_blk = append_block llvm_ctx "if.end" main in
+ 		let cond_blk = instr_parent cond in 
+ 		ignore(position_at_end cond_blk llvm_builder);
+ 		let condbr = 
+ 			build_cond_br cond if_blk end_blk llvm_builder in
+ 		ignore(position_at_end if_blk llvm_builder);
+ 		ignore(List.map codegen_expr el);
+ 		ignore(position_at_end end_blk llvm_builder);
+ 		condbr
+ 	(*| Ast.Ife (e, e1, e2) -> 
+ 	| Ast.Repeat (el, e) -> *) 
+ 	| Ast.Read v -> 
+ 		let read_val = 
+ 			build_call read [| |] "readtmp" llvm_builder in
+ 		let name = match v with 
+			| Ast.Var name -> name
+			| _ -> raise (Error "argument to read must be var")
+		in
+		let variable = try Hashtbl.find named_values name with
+			| Not_found -> create_entry_block_alloca main name;
+		in
+		ignore(build_store read_val variable llvm_builder);
+		read_val
+ 	| Ast.Write e -> 
+ 		let _val = codegen_expr e in
+ 		ignore(build_call write [| _val |] "" llvm_builder);
+ 		_val
 
 let codegen expr_list = 
 	List.map codegen_expr expr_list;
 	let ret = const_int i32_t 0 in 
-	build_ret ret llvm_builder;;
+	build_ret ret llvm_builder;
