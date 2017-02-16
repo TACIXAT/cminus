@@ -65,6 +65,9 @@ let str_list = List.map to_string parsed;;
 
 print_string (String.concat "" (str_list));;
 
+Codegen.codegen parsed;;
+Llvm.dump_module Codegen.llvm_mod;;
+
 (* let ast = parse "2 + 2;" ;; *)
 (* let gctx = Llvm.global_context () ;; *)
 
