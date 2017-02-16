@@ -12,6 +12,10 @@ I'm using the [Cornell's CS3110 parsing code](http://www.cs.cornell.edu/courses/
 
 A good resource for code is the [LLVM Kaleidoscope OCaml tutorial](http://llvm.org/docs/tutorial/OCamlLangImpl1.html). It uses camlp4 and the code is more complex than the Cornell tutorial. It includes examples of code generation and other further pieces of a compiler.
 
+The [documentation for the LLVM OCaml bindings](https://llvm.moe/ocaml/). 
+
+[Part 3](https://www.wzdftpd.net/blog/ocaml-llvm-03.html) of @chifflier's OCaml LLVM bindings tutorial is very helpful for code generation.
+
 ## Dependencies
 
 Install ocaml.
