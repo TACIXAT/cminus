@@ -60,4 +60,6 @@ let rec codegen_expr = function
  	| Write e ->  *)
 
 let codegen expr_list = 
-	List.map codegen_expr expr_list
+	List.map codegen_expr expr_list;
+	let ret = const_int i32_t 0 in 
+	build_ret ret llvm_builder;;
