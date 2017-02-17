@@ -70,19 +70,72 @@ let rec codegen_expr = function
  		let rhs = codegen_expr e2 in
  		build_sdiv lhs rhs "divtmp" llvm_builder
  	| Ast.Ift (e, el) -> 
+ 		(* Create conditional *)
  		let cond = codegen_expr e in
+ 		(* Create if block *)
  		let if_blk = append_block llvm_ctx "if.true" main in
+ 		(* Add instructions to if block *)
+ 		ignore(position_at_end if_blk llvm_builder);
+ 		ignore(List.map codegen_expr el);
+ 		(* Create end block *)
  		let end_blk = append_block llvm_ctx "if.end" main in
+ 		(* Create explicit branch from if -> end block *)
+ 		let ifendbr = build_br end_blk llvm_builder in
+ 		(* Create conditional branch *)
  		let cond_blk = instr_parent cond in 
  		ignore(position_at_end cond_blk llvm_builder);
  		let condbr = 
  			build_cond_br cond if_blk end_blk llvm_builder in
- 		ignore(position_at_end if_blk llvm_builder);
- 		ignore(List.map codegen_expr el);
+ 		(* Move to end *)
  		ignore(position_at_end end_blk llvm_builder);
  		condbr
- 	(*| Ast.Ife (e, e1, e2) -> 
- 	| Ast.Repeat (el, e) -> *) 
+ 	| Ast.Ife (e, el1, el2) -> 
+ 		(* Create conditional *)
+ 		let cond = codegen_expr e in
+ 		(* Create if block *)
+ 		let if_blk = append_block llvm_ctx "if.true" main in
+ 		(* Add instructions to if block *)
+ 		ignore(position_at_end if_blk llvm_builder);
+ 		ignore(List.map codegen_expr el1);
+ 		(* Create else block *)
+ 		let else_blk = append_block llvm_ctx "if.false" main in
+ 		(* Add instructions to else block *)
+ 		ignore(position_at_end else_blk llvm_builder);
+ 		ignore(List.map codegen_expr el2);
+ 		(* Create end block *)
+ 		let end_blk = append_block llvm_ctx "if.end" main in
+ 		(* Create conditional *)
+ 		let cond_blk = instr_parent cond in 
+ 		ignore(position_at_end cond_blk llvm_builder);
+ 		let condbr = 
+ 			build_cond_br cond if_blk else_blk llvm_builder in
+ 		(* Create explicit branch from if -> end *)
+ 		ignore(position_at_end if_blk llvm_builder);
+ 		let ifendbr = build_br end_blk llvm_builder in
+ 		(* Create explicit branch from else -> end *)
+ 		ignore(position_at_end else_blk llvm_builder);
+ 		let elseendbr = build_br end_blk llvm_builder in
+ 		(* Move to end *)
+ 		ignore(position_at_end end_blk llvm_builder);
+ 		elseendbr
+ 	| Ast.Repeat (el, e) -> 
+ 		(* Create repeat block *)
+ 		let rpt_blk = append_block llvm_ctx "repeat.true" main in
+ 		(* Create explicit branch to repeat *)
+ 		let brrpt = build_br rpt_blk llvm_builder in
+ 		(* Add instructions to repeat block *)
+ 		ignore(position_at_end rpt_blk llvm_builder);
+ 		ignore(List.map codegen_expr el);
+ 		(* Set up conditional *)
+ 		let cond = codegen_expr e in
+ 		(* Add end block *)
+ 		let end_blk = append_block llvm_ctx "repeat.end" main in
+ 		(* Create branch from rpt -> rpt | end *)
+ 		ignore(position_at_end rpt_blk llvm_builder);
+ 		let condbr = 
+ 			build_cond_br cond rpt_blk end_blk llvm_builder in
+ 		ignore(position_at_end end_blk llvm_builder);
+ 		condbr
  	| Ast.Read v -> 
  		let read_val = 
  			build_call read [| |] "readtmp" llvm_builder in
