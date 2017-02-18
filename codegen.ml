@@ -133,7 +133,7 @@ let rec codegen_expr = function
  		(* Create branch from rpt -> rpt | end *)
  		ignore(position_at_end rpt_blk llvm_builder);
  		let condbr = 
- 			build_cond_br cond rpt_blk end_blk llvm_builder in
+ 			build_cond_br cond end_blk rpt_blk llvm_builder in
  		ignore(position_at_end end_blk llvm_builder);
  		condbr
  	| Ast.Read v -> 
