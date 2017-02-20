@@ -1,11 +1,11 @@
 open Ast
 
 let parse s =
-  let lexbuf = Lexing.from_string s in
-  let ast = Parser.prog Lexer.read lexbuf in
-  ast
+    let lexbuf = Lexing.from_string s in
+    let ast = Parser.prog Lexer.read lexbuf in
+    ast
 
-let file = "sample.tny" 
+let file = "fact.tny" 
 let contents = Core.Std.In_channel.read_all file
 let parsed = parse contents;;
 

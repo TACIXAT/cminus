@@ -35,6 +35,30 @@ ocamlfind ocamlmktop -o llvmutop -thread -linkpkg -package utop llvm.cma myutop_
 
 `ocamlbuild -lib=llvm -use-ocamlfind -pkg core -tag thread  main.byte`
 
-## Installing OCaml on CentOS 6
+## Installing LLVM / OCaml on Ubuntu 16.04
 
-TBD (for professor)
+## Install LLVM, OCaml, Dependencies 
+
+    wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+    [ENTER YOUR PASSWORD]
+    sudo apt-add-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-3.9 main"
+    sudo apt-get update
+    sudo apt-get install llvm-3.9 ocaml clang-3.9
+    sudo apt-get install git opam m4 pkg-config cmake
+
+## OCaml Setup and Project Dependencies
+
+    opam init # answer yes
+    eval `opam config env`
+    opam install core menhir ctype ctype-foreign llvm
+
+## Project Build and Run
+
+    git clone https://github.com/douggard/cminus.git
+    cd cminus
+    ocamlbuild -use-ocamlfind -pkg core -pkg llvm -tag thread  main.byte
+    cd samples/fact
+    ~/cminus/main.byte 2> fact.ll
+    clang-3.9 fact.ll ../io.c
+    ./a.out
+

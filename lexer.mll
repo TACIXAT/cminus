@@ -14,29 +14,28 @@ let comment = '{' [^'}']* '}'
 
 (* Character stream to token *)
 
-rule read = 
-  parse
-  | white     { read lexbuf }
-  | comment   { read lexbuf }
-  | "if"      { IF }
-  | "then"    { THEN }
-  | "else"    { ELSE }
-  | "end"     { END }
-  | "repeat"  { REPEAT }
-  | "until"   { UNTIL }
-  | "read"    { READ }
-  | "write"   { WRITE }
-  | ":="      { ASSIGN }
-  | "+"       { PLUS }
-  | "-"       { MINUS }
-  | "*"       { MUL }
-  | "/"       { DIV }
-  | "="       { EQUALS }
-  | "<"       { LT }
-  | "("       { LPAREN }
-  | ")"       { RPAREN }
-  | ";"       { SEMI }
-  | id        { ID (Lexing.lexeme lexbuf) }
-  | int       { INT (int_of_string (Lexing.lexeme lexbuf)) }
-  | eof       { EOF }
+rule read = parse
+    | white     { read lexbuf }
+    | comment   { read lexbuf }
+    | "if"      { IF }
+    | "then"    { THEN }
+    | "else"    { ELSE }
+    | "end"     { END }
+    | "repeat"  { REPEAT }
+    | "until"   { UNTIL }
+    | "read"    { READ }
+    | "write"   { WRITE }
+    | ":="      { ASSIGN }
+    | "+"       { PLUS }
+    | "-"       { MINUS }
+    | "*"       { MUL }
+    | "/"       { DIV }
+    | "="       { EQUALS }
+    | "<"       { LT }
+    | "("       { LPAREN }
+    | ")"       { RPAREN }
+    | ";"       { SEMI }
+    | id        { ID (Lexing.lexeme lexbuf) }
+    | int       { INT (int_of_string (Lexing.lexeme lexbuf)) }
+    | eof       { EOF }
   
