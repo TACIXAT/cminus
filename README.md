@@ -37,7 +37,7 @@ ocamlfind ocamlmktop -o llvmutop -thread -linkpkg -package utop llvm.cma myutop_
 
 ## Installing LLVM / OCaml on Ubuntu 16.04
 
-## Install LLVM, OCaml, Dependencies 
+### Install LLVM, OCaml, Dependencies 
 
     wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
     [ENTER YOUR PASSWORD]
@@ -46,13 +46,13 @@ ocamlfind ocamlmktop -o llvmutop -thread -linkpkg -package utop llvm.cma myutop_
     sudo apt-get install llvm-3.9 ocaml clang-3.9
     sudo apt-get install git opam m4 pkg-config cmake
 
-## OCaml Setup and Project Dependencies
+### OCaml Setup and Project Dependencies
 
     opam init # answer yes
     eval `opam config env`
     opam install core menhir ctype ctype-foreign llvm
 
-## Project Build and Run
+### Project Build and Run
 
     git clone https://github.com/douggard/cminus.git
     cd cminus
