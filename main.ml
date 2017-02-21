@@ -5,7 +5,7 @@ let parse s =
     let ast = Parser.prog Lexer.read lexbuf in
     ast
 
-let file = "fact.tny" 
+let file = Sys.argv.(1)
 let contents = Core.Std.In_channel.read_all file
 let parsed = parse contents;;
 
