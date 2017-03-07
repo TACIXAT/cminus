@@ -5,37 +5,45 @@ open Parser
 
 (* Regexes *)
 
-let white = [' ' '\t' '\n']+
-let digit = ['0'-'9']
-let int = '-'? digit+
-let letter = ['a'-'z' 'A'-'Z']
-let id = letter+
-let comment = '{' [^'}']* '}'
+let white = [' ' '\t' '\r']+
+let newline = '\n'
+let num = ['0'-'9']
+let int = '-'? num+
+let alpha = ['a'-'z' 'A'-'Z']
+let alphanum = alpha | num
+let id = letter alphanum+
 
 (* Character stream to token *)
 
 rule read = parse
     | white     { read lexbuf }
-    | comment   { read lexbuf }
+    | newline   { NEWLINE }
+    | "void"    { VOID }
+    | "int"     { INT }
     | "if"      { IF }
-    | "then"    { THEN }
     | "else"    { ELSE }
-    | "end"     { END }
-    | "repeat"  { REPEAT }
-    | "until"   { UNTIL }
-    | "read"    { READ }
-    | "write"   { WRITE }
-    | ":="      { ASSIGN }
+    | "while"   { WHILE }
+    | "="       { ASSIGN }
     | "+"       { PLUS }
     | "-"       { MINUS }
     | "*"       { MUL }
     | "/"       { DIV }
-    | "="       { EQUALS }
+    | "=="      { EQ }
+    | "!="      { NOTEQ }
     | "<"       { LT }
+    | ">"       { GT }
+    | "<="      { LTEQ }
+    | ">="      { GTEQ }
     | "("       { LPAREN }
     | ")"       { RPAREN }
+    | "{"       { LCURLY }
+    | "}"       { RCURLY }
+    | "["       { LBRACE }
+    | "]"       { RBRACE }
+    | ","       { COMMA }
     | ";"       { SEMI }
+    | "/*"      { COMMENT_START }
+    | "*/"      { COMMENT_END }
     | id        { ID (Lexing.lexeme lexbuf) }
     | int       { INT (int_of_string (Lexing.lexeme lexbuf)) }
     | eof       { EOF }
-  
