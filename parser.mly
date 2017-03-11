@@ -6,26 +6,32 @@ open Ast
 
 (* Tokens *)
 
-%token <int> INT
-%token <string> ID
+%token VOID_TYPE
+%token INT_TYPE
 %token IF
-%token THEN
 %token ELSE
-%token END
-%token REPEAT
-%token UNTIL
+%token WHILE
+%token ASSIGN
 %token PLUS
 %token MINUS
 %token MUL
 %token DIV
+%token EQ
+%token NOTEQ
+%token LT
+%token GT
+%token LTEQ
+%token GTEQ
 %token LPAREN
 %token RPAREN
-%token EQUALS
-%token LT
-%token ASSIGN
-%token READ
-%token WRITE
+%token LCURLY
+%token RCURLY
+%token LBRACE
+%token RBRACE
+%token COMMA
 %token SEMI
+%token <string> ID
+%token <int> INT
 %token EOF
 
 (* Precedence and associativity *)
@@ -47,14 +53,41 @@ open Ast
 (* Grammar rules *)
      
 prog:
-    | s = stmt; EOF { [ s ] }
-    | s = stmt; p = prog { s :: p }
+    | d = decl; EOF { [ d ] }
+    | d = decl; p = prog { d :: p }
     ;
+
+decl:
+    | f = func_decl { f }
+    | v = var_decl { v }
+    ;
+
+func_decl:
+    | INT_TYPE; n = ID; 
+        LPAREN; p = param_list; RPAREN; sl = stmt_block 
+        { FuncDeclInt(Decl(n), p, sl) }
+    | VOID_TYPE; n = ID; 
+        LPAREN; p = param_list; RPAREN; sl = stmt_block 
+        { FuncDeclVoid(Decl(n), p, sl) }
+
+stmt_block:
+    | LCURLY; sl = stmt_list; RCURLY { sl }
+    | sl = stmt_list { [ sl ] }
+    ;
+
+param_list:
+    | VOID_TYPE { [] }
+    | INT_TYPE; n = ID; COMMA; l = param_list { Decl(Var(n)) :: l }
+    | INT_TYPE; n = ID { [ Decl(Var(n)) ] }
+    ;
+
+var_decl:
+    | INT_TYPE; n = ID; SEMI { VarDecl(Var(n)) }
+    | INT_TYPE; n = ID; LBRACE; s = INT; RBRACE; SEMI { ArrayDecl(Var(n), s) }
 
 stmt:
     | f = if_stmt { f }
-    | i = io_stmt { i }
-    | r = repeat_stmt { r }
+    | w = while_stmt { w }
     | e = expr; SEMI { e }
     ;
     
@@ -68,20 +101,26 @@ if_stmt:
     | IF; e = expr; THEN; slt = stmt_list; ELSE; sle = stmt_list; END { Ife(e, slt, sle) }
     ;
 
-io_stmt:
-    | READ; x = ID; SEMI { Read(Var(x)) }
-    | WRITE; e = expr; SEMI { Write(e) }
+while_stmt:
+    | WHILE; LPAREN; e = expr; RPAREN; sl = stmt_block; { While(e, sl) }
     ;
 
-repeat_stmt:
-    | REPEAT; sl = stmt_list; UNTIL; e = expr SEMI { Repeat(sl, e) }
+arg_list = 
+    | e = expr; COMMA; el = arg_list { e :: el }
+    | e = expr { [ e ] }
     ;
 
 expr:
     | i = INT { Int i }
+    | x = ID; LBRACE; e = expr; RBRACE { Access(Var(x), e) }
+    | x = ID; LPAREN; el = arg_list; RPAREN { Call(Var(x), el) }
     | x = ID { Var x }
     | e1 = expr; EQUALS; e2 = expr { Equiv(e1, e2) }
+    | e1 = expr; NOTEQ; e2 = expr { Unequiv(e1, e2) }
     | e1 = expr; LT; e2 = expr { Less(e1, e2) }
+    | e1 = expr; GT; e2 = expr { Greater(e1, e2) }
+    | e1 = expr; LTEQ; e2 = expr { LessEq(e1, e2) }
+    | e1 = expr; GTEQ; e2 = expr { GreaterEq(e1, e2) }
     | e1 = expr; PLUS; e2 = expr { Add(e1, e2) }
     | e1 = expr; MINUS; e2 = expr { Sub(e1, e2) }
     | e1 = expr; MUL; e2 = expr { Mul(e1, e2) }

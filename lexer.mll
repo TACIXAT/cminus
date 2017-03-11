@@ -12,17 +12,20 @@ let int = '-'? num+
 let alpha = ['a'-'z' 'A'-'Z']
 let alphanum = alpha | num
 let id = letter alphanum+
+let comment = "/*" _*? "*/"
 
 (* Character stream to token *)
 
 rule read = parse
     | white     { read lexbuf }
-    | newline   { NEWLINE }
-    | "void"    { VOID }
-    | "int"     { INT }
+    | newline   { read lexbuf }
+    | comment   { read lexbuf }
+    | "void"    { VOID_TYPE }
+    | "int"     { INT_TYPE }
     | "if"      { IF }
     | "else"    { ELSE }
     | "while"   { WHILE }
+    | "return"  { RETURN }
     | "="       { ASSIGN }
     | "+"       { PLUS }
     | "-"       { MINUS }
@@ -42,8 +45,6 @@ rule read = parse
     | "]"       { RBRACE }
     | ","       { COMMA }
     | ";"       { SEMI }
-    | "/*"      { COMMENT_START }
-    | "*/"      { COMMENT_END }
     | id        { ID (Lexing.lexeme lexbuf) }
     | int       { INT (int_of_string (Lexing.lexeme lexbuf)) }
     | eof       { EOF }
