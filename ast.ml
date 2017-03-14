@@ -32,6 +32,8 @@ type program =
     | Program of decl list
 
 
+(* Print function so main.ml isn't boring *)
+
 let ccatl l = String.concat "" l
 
 let rec expr_to_string = function
@@ -69,8 +71,3 @@ let rec decl_to_string = function
 
 let rec prog_to_string = function
     | Program dl -> ccatl (List.map decl_to_string dl)
-
-
-
-
-
