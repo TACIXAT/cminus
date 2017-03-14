@@ -8,9 +8,10 @@ let parse s =
 let file = Sys.argv.(1)
 let contents = Core.Std.In_channel.read_all file
 let parsed = parse contents;;
+print_string (prog_to_string parsed);;
 
 (* let str_list = List.map to_string parsed;;
 print_string (String.concat "" (str_list));; *)
 
-Codegen.codegen parsed;;
-Llvm.dump_module Codegen.llvm_mod;;
+(* Codegen.codegen parsed;;
+Llvm.dump_module Codegen.llvm_mod;; *)

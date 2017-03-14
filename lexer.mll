@@ -11,7 +11,7 @@ let num = ['0'-'9']
 let int = '-'? num+
 let alpha = ['a'-'z' 'A'-'Z']
 let alphanum = alpha | num
-let id = letter alphanum+
+let id = alpha alphanum+?
 let comment = "/*" _*? "*/"
 
 (* Character stream to token *)
