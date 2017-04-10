@@ -1,0 +1,6 @@
+int a;
+int a;
+
+void main(void) {
+    b = 4;
+}
