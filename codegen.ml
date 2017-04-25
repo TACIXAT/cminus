@@ -42,6 +42,14 @@ let create_entry_block_alloca func name =
   Hashtbl.add scope name alloca;
   alloca
 
+let create_entry_block_alloca_array func name len =
+  let block_builder = builder_at llvm_ctx (instr_begin (entry_block func)) in
+  let alloca = build_array_alloca i32_t len name block_builder in
+  let scopel = !scope_list in 
+  let scope = List.hd scopel in 
+  Hashtbl.add scope name alloca;
+  alloca
+
 let rec codegen_expr func expr =
     match expr with 
         | Ast.IntDecl e -> 
@@ -49,8 +57,21 @@ let rec codegen_expr func expr =
                 | Var n -> n
             in
             create_entry_block_alloca func name
-        (* | Ast.ArrayDecl (e, i) ->  *)
-        (* | Ast.Access (e1, e2) ->  *)
+        | Ast.ArrayDecl (e, i) -> 
+            (* let a_t = array_type i32_t i in *)
+            let name = match e with 
+                | Var n -> n
+            in
+            let len = const_int i32_t i in
+            create_entry_block_alloca_array func name len
+        | Ast.Access (e1, e2) -> 
+            let name = match e1 with 
+                | Var n -> n
+            in
+            let var = get_var !scope_list name in
+            let idx = codegen_expr func e2 in
+            let gep = build_gep var (Array.of_list [idx]) "geptmp" llvm_builder in
+            build_load gep "loadtmp" llvm_builder
         | Ast.Call (e, el) -> 
             let args = Array.of_list (List.map (fun e -> codegen_expr func e) el) in
             let fn_name = match e with 
@@ -65,14 +86,25 @@ let rec codegen_expr func expr =
             build_load v s llvm_builder
         | Ast.Int i -> const_int i32_t i
         | Ast.Assign (e1, e2) -> 
-            let name = match e1 with 
-                | Ast.Var name -> name
-                | _ -> raise (Error "lhs of assign must be var")
+            let ret = match e1 with 
+                | Ast.Var name -> 
+                    let _val = codegen_expr func e2 in
+                    let variable = get_var !scope_list name in
+                    ignore(build_store _val variable llvm_builder);
+                    _val
+                | Ast.Access (v, i) -> 
+                    let name = match v with 
+                        | Var n -> n
+                    in
+                    let var = get_var !scope_list name in
+                    let idx = codegen_expr func i in
+                    let gep = build_gep var (Array.of_list [idx]) "geptmp" llvm_builder in
+                    let _val = codegen_expr func e2 in
+                    build_store _val gep llvm_builder;
+                    _val
+                | _ -> raise (Error "lhs of assign must be var or access")
             in
-            let _val = codegen_expr func e2 in
-            let variable = get_var !scope_list name in
-            ignore(build_store _val variable llvm_builder);
-            _val
+            ret
         | Ast.Equiv (e1, e2) -> 
             let lhs = codegen_expr func e1 in
             let rhs = codegen_expr func e2 in
@@ -147,7 +179,7 @@ let rec codegen_expr func expr =
             scope_list := scope_t :: !scope_list;
             (* Add instructions to if block *)
             ignore(position_at_end if_blk llvm_builder);
-            ignore(List.map (fun e -> codegen_expr func e) e1);
+            let if_code = List.map (fun e -> codegen_expr func e) e1 in
             (* Remove Scope *)
             scope_list := List.tl !scope_list;
             (* Add Scope *)
@@ -175,6 +207,10 @@ let rec codegen_expr func expr =
             let elseendbr = build_br end_blk llvm_builder in
             (* Move to end *)
             ignore(position_at_end end_blk llvm_builder);
+            (* NOP *)
+            (* let z = const_int i32_t 0 in
+            let nop = build_alloca i32_t "nop" llvm_builder in
+            build_store z nop llvm_builder; *)
             elseendbr
         | Ast.While (e, el) -> 
             (* Create blocks *)
@@ -245,6 +281,8 @@ let rec codegen_decl = function
             (params fn);
         scope_list := scope :: !scope_list;
         List.map (fun e -> codegen_expr fn e) el;
+        let ret = const_int i32_t 0xDEAD in 
+        build_ret ret llvm_builder;
         scope_list := List.tl !scope_list
     | Ast.FuncDeclVoid (e, pl, el) -> 
         let name = match e with 

@@ -143,4 +143,5 @@ expr:
     | INT_TYPE; n = ID; LBRACE; s = INT; RBRACE { ArrayDecl(Var(n), s) }
     | RETURN; e = expr { Return(e) }
     | x = ID; ASSIGN ; e = expr { Assign(Var(x), e) }
+    | x = ID; LBRACE; i = expr; RBRACE; ASSIGN ; e = expr { Assign(Access(Var(x), i), e) }
     ;
