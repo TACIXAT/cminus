@@ -234,12 +234,6 @@ let rec codegen_expr func expr =
             ignore(position_at_end end_blk llvm_builder);
             condbr
 
-(*  
-    let scope:(string, llvalue) Hashtbl.t = Hashtbl.create 10 in
-    scope_list := scope :: !scope_list;
-    scope_list := List.tl !scope_list 
-*)
-
 let handle_global decl = 
     let v = match decl with 
         | Ast.IntDecl v -> v 
@@ -305,12 +299,5 @@ let rec codegen_decl = function
 
 let rec codegen = function
     | Ast.Program dl -> List.map codegen_decl dl
-
-
-
-
-
-
-
 
 

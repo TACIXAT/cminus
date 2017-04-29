@@ -2,7 +2,6 @@ open Ast
 
 exception Error of string
 
-(* I think I get this for free in codegen *)
 let typetbl = Hashtbl.create 5;;
 Hashtbl.add typetbl "input" "int";;
 Hashtbl.add typetbl "output" "void";;
@@ -37,10 +36,6 @@ let check_exists scopel s =
         | false -> 
             let msg = String.concat "" ("Undeclared variable " :: [s]) in
             raise (Error msg)
-
-(* let check_use scopel e =
-    match e with 
-        | Var s -> check_exists scopel s *)
 
 let rec check_both scopel e1 e2 =
     analyze_expr scopel e1;
@@ -117,7 +112,6 @@ let set_func e t =
 let rec analyze_decl scopel d = 
     match d with 
         | VarDecl e -> analyze_expr scopel e
-        (* | FuncDeclInt (e, pl, el) ->  *)
         | FuncDeclVoid (e, pl, el) -> 
             let scopel_1 = ref (check_decl scopel e) in
             set_func e "void";
