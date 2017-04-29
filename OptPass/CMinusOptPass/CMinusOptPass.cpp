@@ -3,6 +3,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 #include <iostream>
+#include <list>
 
 using namespace llvm;
 
@@ -16,23 +17,47 @@ namespace {
 		}
 
 		virtual bool runOnFunction(Function &F) {
-			for (BasicBlock &B: F) {
-				bool term = false;
-				for (Instruction &I: B) {
-					I.dump();
-					if(term) {
-						std::cout << "\tRemoving: " << std::endl;
-						I.dump();
-						I.removeFromParent();
-					} else if(I.isTerminator()) {
-						//I.dump();
-						std::cout << "\tTerm true..." << std::endl;
-						term = true;	
+			while(true) {
+				bool entry = true;
+				std::list<BasicBlock *> remove_blocks;
+			
+				for (BasicBlock &B: F) {
+					if(entry) {
+						entry = false;
+						continue;
+					}
+				
+					int pred_count = 0;
+				
+					for(auto it = pred_begin(&B), et = pred_end(&B); it != et; it++) {
+						BasicBlock *pred = *it;
+						pred_count++;
+					} 
+				
+					if(pred_count == 0) {
+						remove_blocks.push_back(&B);
+						
+						for(auto it = succ_begin(&B), et = succ_end(&B); it !=et; it++) {
+							BasicBlock *succ = *it;
+							succ->removePredecessor(&B);
+						} 
 					}
 				}
-				std::cout << "end block" << std::endl;
+			
+				if(remove_blocks.size() == 0)
+					break;
+			
+				for(BasicBlock *B: remove_blocks) {
+					std::cout << "REMOVING: " << std::endl;
+					for(Instruction &I: *B) {
+						I.dump();
+					}
+					B->dropAllReferences();
+					B->removeFromParent();
+				}
+				std::cout << std::endl;
 			}
-
+			
 			return true;
 		}
 	};
