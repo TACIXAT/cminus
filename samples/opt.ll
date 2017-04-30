@@ -1,10 +1,10 @@
-REMOVING: 
-  br label %if.end
-REMOVING: 
-  br label %if.end
+; REMOVING: 
+;   br label %if.end
+; REMOVING: 
+;   br label %if.end
 
-REMOVING: 
-  ret i32 57005
+; REMOVING: 
+;   ret i32 57005
 
 ; ModuleID = 'out.ll'
 source_filename = "cminus"
